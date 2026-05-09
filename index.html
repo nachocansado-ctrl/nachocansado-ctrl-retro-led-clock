@@ -9,6 +9,7 @@
     <meta name="theme-color" content="#000000">
     <title>Reloj Digital LED - DS-Digital</title>
     <link href="https://fonts.cdnfonts.com/css/ds-digital" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
     <style>
         * {
             margin: 0;
@@ -19,6 +20,7 @@
         html, body {
             width: 100%;
             height: 100%;
+            height: 100dvh;
             background: #000000;
         }
 
@@ -28,6 +30,7 @@
             left: 0;
             width: 100%;
             height: 100%;
+            height: 100dvh;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -210,9 +213,18 @@
             font-size: 16px;
         }
 
-        /* Ocultar home indicator completamente */
-        @supports (padding: max(0px)) {
+        /* Fullscreen mode */
+        @media (display-mode: fullscreen) {
             body {
+                height: 100vh;
+                height: 100dvh;
+            }
+        }
+
+        @media (display-mode: standalone) {
+            body {
+                height: 100vh;
+                height: 100dvh;
                 padding-bottom: 0 !important;
             }
         }
@@ -230,6 +242,7 @@
         let modo = 1; // 1 = reloj real, 2 = 85:55, 3 = 88:88
         let presionando = false;
         let tiempoPresion = null;
+        let homeIndicatorTimeout;
 
         function actualizarReloj() {
             if (modo === 1) {
@@ -268,6 +281,11 @@
             e.preventDefault();
             presionando = true;
             tiempoPresion = Date.now();
+            
+            // Mostrar UI completamente al tocar
+            clearTimeout(homeIndicatorTimeout);
+            document.body.style.opacity = '1';
+            window.scrollTo(0, 0);
         }, { passive: false });
 
         document.addEventListener('touchend', (e) => {
@@ -278,11 +296,29 @@
             }
             presionando = false;
             tiempoPresion = null;
+            
+            // Ocultar home indicator después de 3 segundos
+            homeIndicatorTimeout = setTimeout(() => {
+                window.scrollTo(0, 1);
+                // Intenta pantalla completa
+                if (document.fullscreenElement === null && document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(() => {
+                        // Silenciosamente falla si no está permitido
+                    });
+                }
+            }, 3000);
         }, { passive: false });
 
         // Prevenir zoom en iOS
         document.addEventListener('gesturestart', (e) => {
             e.preventDefault();
+        });
+
+        // Auto-hide UI al cargar
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                window.scrollTo(0, 1);
+            }, 500);
         });
     </script>
 </body>
