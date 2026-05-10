@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Reloj LED">
@@ -17,41 +17,32 @@
             box-sizing: border-box;
         }
 
-        html {
+        html, body {
             width: 100%;
             height: 100%;
-            height: 100vh;
-            height: 100dvh;
             background: #000000;
-            position: fixed;
-            top: 0;
-            left: 0;
         }
 
         body {
-            width: 100%;
-            height: 100%;
-            height: 100vh;
-            height: 100dvh;
-            background: #000000;
             position: fixed;
             top: 0;
             left: 0;
+            width: 100%;
+            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
             font-family: 'DS-Digital', monospace;
             overflow: hidden;
+            background: #000000;
             padding: 0 !important;
             margin: 0 !important;
-            border: none;
             
             -webkit-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
             -webkit-font-smoothing: antialiased;
             -webkit-appearance: none;
-            -webkit-tap-highlight-color: transparent;
         }
 
         .reloj-container {
@@ -62,8 +53,6 @@
             width: 100%;
             height: 100%;
             background: #000000;
-            padding: 0;
-            margin: 0;
         }
 
         .reloj {
@@ -223,29 +212,46 @@
             font-size: 16px;
         }
 
+        /* LANDSCAPE MODE - Sin barra inferior */
+        @media (orientation: landscape) {
+            html, body {
+                width: 100%;
+                height: 100vh;
+            }
+            
+            body {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: 100vh;
+                overflow: hidden;
+            }
+            
+            .reloj {
+                font-size: clamp(80px, 25vw, 400px);
+            }
+        }
+
+        /* Portrait mode */
+        @media (orientation: portrait) {
+            body {
+                min-height: 100vh;
+            }
+        }
+
         /* Fullscreen mode */
         @media (display-mode: fullscreen) {
-            html, body {
+            body {
                 height: 100vh;
-                height: 100dvh;
             }
         }
 
         @media (display-mode: standalone) {
-            html, body {
-                height: 100vh;
-                height: 100dvh;
-                padding-bottom: 0 !important;
-            }
-        }
-
-        /* iPhone XS specific - ocultar home indicator */
-        @supports (padding: max(0px)) {
             body {
-                padding-left: max(0px, env(safe-area-inset-left));
-                padding-right: max(0px, env(safe-area-inset-right));
-                padding-top: max(0px, env(safe-area-inset-top));
-                padding-bottom: 0px !important;
+                height: 100vh;
+                padding-bottom: 0 !important;
             }
         }
     </style>
@@ -262,7 +268,6 @@
         let modo = 1; // 1 = reloj real, 2 = 85:55, 3 = 88:88
         let presionando = false;
         let tiempoPresion = null;
-        let homeIndicatorTimeout;
 
         function actualizarReloj() {
             if (modo === 1) {
@@ -301,9 +306,6 @@
             e.preventDefault();
             presionando = true;
             tiempoPresion = Date.now();
-            
-            // Forzar scroll para ocultar UI
-            window.scrollTo(0, 1);
         }, { passive: false });
 
         document.addEventListener('touchend', (e) => {
@@ -314,11 +316,6 @@
             }
             presionando = false;
             tiempoPresion = null;
-            
-            // Ocultar home indicator después de 2 segundos
-            homeIndicatorTimeout = setTimeout(() => {
-                window.scrollTo(0, 1);
-            }, 2000);
         }, { passive: false });
 
         // Prevenir zoom en iOS
@@ -326,22 +323,11 @@
             e.preventDefault();
         });
 
-        // Auto-hide UI al cargar
-        window.addEventListener('load', () => {
+        // Detectar cambios de orientación
+        window.addEventListener('orientationchange', () => {
             setTimeout(() => {
-                window.scrollTo(0, 1);
-                // Fuerza scroll cada 5 segundos para mantener oculto
-                setInterval(() => {
-                    window.scrollTo(0, 1);
-                }, 5000);
+                window.scrollTo(0, 0);
             }, 100);
-        });
-
-        // Cuando el usuario toque la pantalla, ocultarlo de nuevo
-        document.addEventListener('click', () => {
-            setTimeout(() => {
-                window.scrollTo(0, 1);
-            }, 500);
         });
     </script>
 </body>
